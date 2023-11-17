@@ -228,13 +228,19 @@ local menus = function()
                     end,
                 },
                 {
-                    title = "base64 to str",
+                    title = "base64 to str/img",
                     fn = function()
                         local content = hs.pasteboard.readString()
                         if content ~= nil then
-                            local str = hs.base64.decode(content)
-                            hs.pasteboard.writeObjects(str)
-                            hs.alert.show(str)
+                            if content:match("^data:image/") then
+                                local img = hs.image.imageFromURL(content)
+                                hs.pasteboard.writeObjects(img)
+                                hs.alert.show("base64 to image success")
+                            else
+                                local str = hs.base64.decode(content)
+                                hs.pasteboard.writeObjects(str)
+                                hs.alert.show(str)
+                            end
                         end
                     end,
                 },
