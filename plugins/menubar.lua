@@ -1,11 +1,16 @@
----@diagnostic disable: lowercase-global
+---@diagnostic disable: lowercase-global, undefined-doc-name
 menu = hs.menubar.new()
 local log = hs.logger.new("menubar", "debug")
 local coffeeIcon = hs.image.imageFromPath("assets/icon_coffee.png"):setSize({ h = 20, w = 20 })
 local defaultIcon = hs.image.imageFromPath("assets/statusicon.pdf")
-local caffeine_start = 0
-local caffeine_stop = 0
-caffeine_timer = nil
+
+---@class caffeine
+---@field start number 咖啡因开始时间
+---@field stop number 咖啡因结束时间
+---@field timer hs.timer? 咖啡因计时器
+---@field select string? 咖啡因当前选择
+caffeine = { start = 0, stop = 0, timer = nil, select = nil }
+
 
 ---判断系统当前是否darkmode
 ---@return boolean
@@ -27,30 +32,65 @@ local function getDockAutoHide()
 end
 
 local function getCaffeineTitle()
-    if caffeine_start == 0 and caffeine_stop == 0 then
+    if caffeine.start == 0 and caffeine.stop == 0 then
         return "Caffeine"
-    elseif caffeine_start > 0 and caffeine_stop == 0 then
+    elseif caffeine.start > 0 and caffeine.stop == 0 then
         return "Caffeine Forever"
-    elseif caffeine_start < caffeine_stop then
-        local remain = caffeine_stop - os.time()
+    elseif caffeine.start < caffeine.stop then
+        local remain = caffeine.stop - os.time()
         if remain < 0 then
-            return "Caffine, Remain 0s"
+            return "Caffeine, Remain 0s"
         end
         local hour = remain // 3600
         local minute = (remain - hour * 3600) // 60
         local second = remain - hour * 3600 - minute * 60
         if hour > 0 then
-            return "Caffine, Remain " .. string.format("%02d:%02d:%02d", hour, minute, second)
+            return "Caffeine, Remain " .. string.format("%02d:%02d:%02d", hour, minute, second)
         elseif minute > 0 then
-            return "Caffine, Remain " .. string.format("%02d:%02d", minute, second)
+            return "Caffeine, Remain " .. string.format("%02d:%02d", minute, second)
         else
-            return "Caffine, Remain " .. second .. "s"
+            return "Caffeine, Remain " .. second .. "s"
         end
     end
 end
 
+--- 重置caffeine
+---@param interval integer? 为0则立即停止；为nil表示不停止；为数字表示在该段时间
+local function reset_caffeine(interval)
+    caffeine.select = nil
+    if caffeine.timer ~= nil then
+        caffeine.timer:stop()
+        caffeine.timer = nil
+    end
+    caffeine.start = 0
+    caffeine.stop = 0
+    if interval == 0 then
+        hs.caffeinate.set("displayIdle", false, true)
+        menu:setIcon(defaultIcon)
+        return
+    elseif interval == nil then
+        hs.caffeinate.set("displayIdle", true, true)
+        menu:setIcon(coffeeIcon)
+        caffeine.start = os.time()
+        caffeine.stop = 0
+        return
+    end
+    hs.caffeinate.set("displayIdle", true, true)
+    menu:setIcon(coffeeIcon)
+    caffeine.start = os.time()
+    caffeine.stop = caffeine.start + interval
+    caffeine.timer = hs.timer.doAfter(interval, function()
+        hs.caffeinate.set("displayIdle", false, true)
+        menu:setIcon(defaultIcon)
+        caffeine.select = nil
+        caffeine.timer = nil
+        caffeine.start = 0
+        caffeine.stop = 0
+    end)
+end
+
 local menus = function()
-    log.i("caffeine", os.date("%Y-%m-%d %H:%M:%S", caffeine_start), os.date("%Y-%m-%d %H:%M:%S", caffeine_stop))
+    log.i("caffeine", os.date("%Y-%m-%d %H:%M:%S", caffeine.start), os.date("%Y-%m-%d %H:%M:%S", caffeine.stop))
     local myMiniTools = {
         {
             title = "Dark Mode",
@@ -73,92 +113,61 @@ local menus = function()
                 {
                     title = "Stop",
                     fn = function()
-                        hs.caffeinate.set("displayIdle", false, true)
-                        menu:setIcon(defaultIcon)
-                        if caffeine_timer ~= nil then
-                            caffeine_timer:stop()
-                            caffeine_timer = nil
-                        end
-                        caffeine_start = 0
-                        caffeine_stop = 0
+                        reset_caffeine(0)
                     end,
                 },
                 {
                     title = "Forever",
-                    checked = caffeine_start > caffeine_stop,
+                    checked = caffeine.select == "forever",
                     fn = function()
-                        if caffeine_timer ~= nil then
-                            caffeine_timer:stop()
-                            caffeine_timer = nil
-                        end
-                        hs.caffeinate.set("displayIdle", true, true)
-                        menu:setIcon(coffeeIcon)
-                        caffeine_start = os.time()
-                        caffeine_stop = 0
+                        reset_caffeine()
+                        caffeine.select = "forever"
                     end,
                 },
                 {
                     title = "30 minutes",
-                    checked = caffeine_start + hs.timer.minutes(30) == caffeine_stop,
+                    checked = caffeine.select == "30",
                     fn = function()
-                        if caffeine_timer ~= nil then
-                            caffeine_timer:stop()
-                        end
-                        local interval = hs.timer.minutes(30)
-                        hs.caffeinate.set("displayIdle", true, true)
-                        menu:setIcon(coffeeIcon)
-                        caffeine_start = os.time()
-                        caffeine_stop = caffeine_start + interval
-                        caffeine_timer = hs.timer.doAfter(interval, function()
-                            log.i("开始执行30分钟定时器")
-                            hs.caffeinate.set("displayIdle", false, true)
-                            menu:setIcon(defaultIcon)
-                            caffeine_timer = nil
-                            caffeine_start = 0
-                            caffeine_stop = 0
-                        end)
+                        reset_caffeine(hs.timer.minutes(30))
+                        caffeine.select = "30"
                     end,
                 },
                 {
                     title = "1 hour",
-                    checked = caffeine_start + hs.timer.hours(1) == caffeine_stop,
+                    checked = caffeine.select == "60",
                     fn = function()
-                        if caffeine_timer ~= nil then
-                            caffeine_timer:stop()
-                        end
-                        local interval = hs.timer.hours(1)
-                        hs.caffeinate.set("displayIdle", true, true)
-                        menu:setIcon(coffeeIcon)
-                        caffeine_start = os.time()
-                        caffeine_stop = caffeine_start + interval
-                        caffeine_timer = hs.timer.doAfter(interval, function()
-                            hs.caffeinate.set("displayIdle", false, true)
-                            menu:setIcon(defaultIcon)
-                            caffeine_timer = nil
-                            caffeine_start = 0
-                            caffeine_stop = 0
-                        end)
+                        reset_caffeine(hs.timer.hours(1))
+                        caffeine.select = "60"
                     end,
                 },
                 {
                     title = "2 hours",
-                    checked = caffeine_start + hs.timer.hours(2) == caffeine_stop,
+                    checked = caffeine.select == "120",
                     fn = function()
-                        if caffeine_timer ~= nil then
-                            caffeine_timer:stop()
+                        reset_caffeine(hs.timer.hours(2))
+                        caffeine.select = "120"
+                    end,
+                },
+                {
+                    title = "Custom minutes",
+                    checked = caffeine.select == "custom",
+                    fn = function()
+                        local lastApplication = hs.application.frontmostApplication()
+                        hs.focus()
+                        local button, interval = hs.dialog.textPrompt("自定义咖啡因时间", "请输入整数", "30", "OK", "Cancel")
+                        if lastApplication then
+                            lastApplication:activate()
                         end
-                        local interval = hs.timer.hours(2)
-                        hs.caffeinate.set("displayIdle", true, true)
-                        menu:setIcon(coffeeIcon)
-                        caffeine_start = os.time()
-                        caffeine_stop = caffeine_start + interval
-                        caffeine_timer = hs.timer.doAfter(interval, function()
-                            hs.caffeinate.set("displayIdle", false, true)
-                            menu:setIcon(defaultIcon)
-                            caffeine_timer = nil
-                            caffeine_start = 0
-                            caffeine_stop = 0
-                        end)
+                        if button ~= "OK" then
+                            return
+                        end
+                        interval = tonumber(interval)
+                        if interval == nil or interval < 0 then
+                            hs.alert.show("请输入数字")
+                            return
+                        end
+                        reset_caffeine(hs.timer.minutes(interval))
+                        caffeine.select = "custom"
                     end,
                 },
             },
