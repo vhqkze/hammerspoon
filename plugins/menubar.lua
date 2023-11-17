@@ -11,6 +11,16 @@ local defaultIcon = hs.image.imageFromPath("assets/statusicon.pdf")
 ---@field select string? 咖啡因当前选择
 caffeine = { start = 0, stop = 0, timer = nil, select = nil }
 
+pasteboardWatcher = hs.pasteboard.watcher.new(function(content)
+    if content == nil then
+        return
+    end
+    new_content = content:gsub("^%s+", ""):gsub("%s+$", "")
+    if new_content ~= content then
+        hs.pasteboard.setContents(new_content)
+    end
+end)
+pasteboardWatcher:stop()
 
 ---判断系统当前是否darkmode
 ---@return boolean
@@ -171,6 +181,17 @@ local menus = function()
                     end,
                 },
             },
+        },
+        {
+            title = "Auto Trim Pasteboard",
+            checked = pasteboardWatcher:running(),
+            fn = function()
+                if pasteboardWatcher:running() then
+                    pasteboardWatcher:stop()
+                else
+                    pasteboardWatcher:start()
+                end
+            end,
         },
         {
             title = "Auto Hide Dock",
