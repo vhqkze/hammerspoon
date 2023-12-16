@@ -181,6 +181,10 @@ cp assets/snippet.json.example assets/snippet.json
 
 监听 Wi-Fi 变化，实现电脑连接/断开指定 Wi-Fi 后执行相应动作。
 
+### plugins/quit.app
+
+对指定的窗口，在关闭最后一个窗口后退出app。
+
 ### plugins/time_format.lua
 
 工作中经常碰到时间戳，但是时间戳需要经过转换才能知道对应的真实时间，这个工具提供了快速将时间戳转换为年月日时分秒，或将年月日时分秒转换为时间戳，并将转换结果显示在屏幕中央。
