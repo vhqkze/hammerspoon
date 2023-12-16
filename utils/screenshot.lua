@@ -7,10 +7,10 @@ local M = {}
 function M.shot_app(window)
     if window ~= nil then
         if window:isVisible() then
-            local im = window:snapshot()
+            local im = window:snapshot(true)
             local size = im:size()
             -- 在我的电脑上这个大小的窗口截图后左右两侧有黑边，去掉黑边
-            if window:title() == '影片录制' and size.h == 1200 and size.w == 556 then
+            if window:title() == "影片录制" and size.h == 1200 and size.w == 556 then
                 if hs.pasteboard.writeObjects(im:croppedCopy({ x = 1, y = 1, w = 554, h = 1198 })) then
                     return true
                 end
@@ -24,7 +24,7 @@ function M.shot_app(window)
                 local im = hs.pasteboard.readImage()
                 local size = im:size()
                 -- 在我的电脑上这个大小的窗口截图后左右两侧有黑边，去掉黑边
-                if window:title() == '影片录制' and size.h == 1200 and size.w == 556 then
+                if window:title() == "影片录制" and size.h == 1200 and size.w == 556 then
                     if hs.pasteboard.writeObjects(im:croppedCopy({ x = 1, y = 1, w = 554, h = 1198 })) then
                         return true
                     end

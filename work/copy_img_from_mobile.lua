@@ -31,16 +31,18 @@ hs.hotkey.bind({ "option" }, "c", get_image_from_adb)
 --- 录制按钮右边的小箭头点击下，屏幕选择手机，就可以将手机屏幕内容镜像到QuickTime Player上了
 --- 通过对QuickTime Player窗口截图，速度较快，但质量较差
 local function get_image_from_ios()
-    local window = hs.window.filter.new(false):setAppFilter("QuickTime Player", { allowTitles = "影片录制" }):getWindows()[1]
-    if window ~= nil then
-        local result = screenshot.shot_app(window)
-        return hs.alert.show(result and "iOS: 图片已复制" or "❌ 从iOS设备截图失败")
-    else
-        local bezel = hs.application.get("Bezel")
-        if bezel ~= nil and bezel:mainWindow() ~= nil then
-            local result = screenshot.shot_app(bezel:mainWindow())
+    local quicktime = hs.application.get("QuickTime Player")
+    if quicktime ~= nil then
+        local window = hs.window.filter.new(false):setAppFilter("QuickTime Player", { allowTitles = "影片录制" }):getWindows()[1]
+        if window ~= nil then
+            local result = screenshot.shot_app(window)
             return hs.alert.show(result and "iOS: 图片已复制" or "❌ 从iOS设备截图失败")
         end
+    end
+    local bezel = hs.application.get("Bezel")
+    if bezel ~= nil and bezel:mainWindow() ~= nil then
+        local result = screenshot.shot_app(bezel:mainWindow())
+        return hs.alert.show(result and "iOS: 图片已复制" or "❌ 从iOS设备截图失败")
     end
     hs.alert.show("❌ 从iOS设备截图失败")
 end
