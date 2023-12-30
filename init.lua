@@ -44,6 +44,7 @@ require("plugins.time_format")
 require("plugins.window_manager")
 require("plugins.menubar")
 -- require("plugins.network")
+require("plugins.rest_reminder")
 
 -- 有yabai时使用yabai，没有yabai时才使用hammerspoon退出app
 local _, exist_yabai = hs.execute("command -v yabai >/dev/null 2>&1", true)

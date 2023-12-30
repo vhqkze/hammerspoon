@@ -181,9 +181,13 @@ cp assets/snippet.json.example assets/snippet.json
 
 监听 Wi-Fi 变化，实现电脑连接/断开指定 Wi-Fi 后执行相应动作。
 
-### plugins/quit.app
+### plugins/quit_app.lua
 
 对指定的窗口，在关闭最后一个窗口后退出app。
+
+### plugins/rest_reminder.lua
+
+每隔5s检测电脑空闲时间，如果空闲时间少于1分钟，则视为正在工作。当连续工作时间达到30分钟，则通过在屏幕中央显示一个小图标来提示休息，休息结束（电脑连续1分钟内无操作）后，提醒消失，重新开始计时。
 
 ### plugins/time_format.lua
 
