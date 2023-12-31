@@ -40,6 +40,7 @@ if hs.settings.get("is_work_device") then
 end
 
 require("plugins.keymap")
+require("plugins.volume")
 require("plugins.time_format")
 require("plugins.window_manager")
 require("plugins.menubar")
