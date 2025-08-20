@@ -2,16 +2,18 @@
 
 local log = hs.logger.new("quit_app", "debug")
 local apps = {
-    "文本编辑",
-    "预览",
-    "脚本编辑器",
-    "活动监视器",
-    "快捷指令",
     "App Store",
-    "Numbers 表格",
-    "日历",
     "信息",
     "备忘录",
+    "快捷指令",
+    "文本编辑",
+    "日历",
+    "活动监视器",
+    "预览",
+    "Logseq",
+    "Anytype",
+    "AFFiNE",
+    "面板编辑器",
 }
 
 QUIT_APP_WATCHER = hs.window.filter.new(false)
