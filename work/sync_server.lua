@@ -7,12 +7,13 @@
 
 local log = hs.logger.new("sync_server", "debug")
 local port = 8863
+local save_dir = os.getenv("HOME") .. "/Pictures/Screenshots"
 
 sync_server = hs.httpserver.new(false, false)
 sync_server:setPort(port)
 sync_server:setCallback(function(method, path, reqheaders, reqbody)
     log.f("收到请求%s %s %s", method, path, hs.inspect(reqheaders))
-    if reqheaders["token"] ~= hs.settings.get("server_token") or reqheaders["X-Remote-Addr"] ~= "127.0.0.1" then
+    if reqheaders["token"] ~= hs.settings.get("server_token") then -- or reqheaders["X-Remote-Addr"] ~= "127.0.0.1" then
         return "", 451, {}
     end
     if method ~= "POST" then
@@ -20,7 +21,7 @@ sync_server:setCallback(function(method, path, reqheaders, reqbody)
     end
     if path == "/pic" then
         log.i("received pic")
-        local filename = os.getenv("HOME") .. "/Pictures/Screenshots/" .. os.date("PIC_%Y%m%d_%H%M%S") .. ".png"
+        local filename = string.format("%s/PIC_%s.png", save_dir, os.date("%Y%m%d_%H%M%S"))
         require("utils.file").save(reqbody, filename)
         if require("utils.file").copy(filename) then
             hs.alert.show("图片已复制")
@@ -39,7 +40,7 @@ sync_server:setCallback(function(method, path, reqheaders, reqbody)
         return "ok", 200, {}
     elseif path == "/video" then
         log.i("received video")
-        local filename = os.getenv("HOME") .. "/Pictures/Screenshots/" .. os.date("VID_%Y%m%d_%H%M%S") .. ".mp4"
+        local filename = string.format("%s/VID_%s.mp4", save_dir, os.date("%Y%m%d_%H%M%S"))
         require("utils.file").save(reqbody, filename)
         if require("utils.file").copy(filename) then
             hs.alert.show("视频已复制")
@@ -51,12 +52,16 @@ sync_server:setCallback(function(method, path, reqheaders, reqbody)
         log.i("received clip")
         local content_type = hs.pasteboard.contentTypes()[1]
         local body = {}
-        if content_type == "public.utf8-plain-text" or content_type == "public.rtf" then
+        local text_type = { "public.utf8-plain-text", "public.rtf", "public.html", "public.url" }
+        log.i(content_type)
+        if hs.fnutils.contains(text_type, content_type) then
             body = { text = hs.pasteboard.readString() }
         elseif content_type == "public.tiff" or content_type == "public.png" then
-            body = { image = hs.pasteboard.readImage():encodeAsURLString() }
+            body = { image = hs.pasteboard.readImage():encodeAsURLString():gsub("^data:image/%w+;base64,", "") }
         else
             log.w("未知的剪贴板内容类型", content_type)
+            hs.alert.show("未知的剪贴板内容类型:" .. content_type)
+            body = { text = hs.pasteboard.readString() }
         end
         return hs.json.encode(body), 200, { ["content-type"] = "application/json" }
     end
