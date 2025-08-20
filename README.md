@@ -63,42 +63,21 @@ cp .env.json.example .env.json
 
 会优先检查是否使用了 [scrcpy](https://github.com/Genymobile/scrcpy) 软件，如果检测到正在使用 scrcpy，则会对 scrcpy 窗口进行截图，这种方法速度较快，且不需要 scrcpy 窗口显示在最前端，但这种方式获得的截图质量不如手机原生截图。
 
-如果没有使用 scrcpy，则会使用 adb 进行截图，会执行以下命令获取截图并保存在 `/tmp/screenshot.png`
+如果没有使用 scrcpy，则会使用 adb 进行截图，会执行以下命令获取截图并保存在 `~/Pictures/mobile/PIC_%Y%m%d_%H%M%S.png`
 
 ```bash
-/usr/local/bin/adb exec-out screencap -p > /tmp/screenshot.png
+adb exec-out screencap -p > ~/Pictures/mobile/${filename}.png
 ```
 
-然后复制 `/tmp/screenshot.png` 内容到电脑剪贴板，再自动清除 `/tmp/screenshot.png` 文件。
+然后复制截图内容到电脑剪贴板。
 
 #### iOS
 
 快捷键 `option+x`
 
-优先检查 QuickTime Player 软件是否打开了 **影片录制** 窗口，需要手机连接电脑后，电脑打开 QuickTime Player，新建影片录制，屏幕选择手机，这样 QuickTime Player 可以实时镜像显示手机屏幕内容。如果检测到有 **影片录制** 窗口，则对该窗口截图并复制到电脑剪贴板，不要求窗口在最前端，即使窗口被挡住或最小化，也可以获取到截图（最好不要最小化，最小化后 QuickTime Player 获取到的镜像画面有延迟）。
+需要先安装 [Bezel](https://nonstrict.eu/bezel/) 软件，然后连接 iphone 手机进行镜像显示，按下快捷键后，会对bezel窗口截图（不需要窗口保持在最前端）复制到剪贴板，同时保存为 `~/Pictures/mobile/PIC_%Y%m%d_%H%M%S.png`。
 
-如果没有使用 QuickTime Player 进行投屏，则会检测是否使用了 [Bezel](https://getbezel.app/) 软件，如果在运行 bezel 软件，则会对 bezel 窗口进行截图。
-
-如果以上两种方式都不行，则直接会显示截图失败。
-
-这里我附上一段 AppleScript 脚本，可以快速打开 QuickTime Player 进行镜像显示
-
-```AppleScript
-tell application "QuickTime Player"
-    # 激活软件
-    activate
-    # 按快捷键 cmd + option + N 以新建影片录制
-    tell application "System Events" to key code 45 using {option down, command down}
-    tell application "System Events" to tell process "QuickTime Player"
-        # 点击录制按钮
-        # click button 3 of window 1
-        # 点击录制按钮右边的小箭头以打开选项
-        click button 2 of window 1
-        # 点击选项里面的屏幕为自己的手机（这里 v Phone 是我的手机名称，需要改成你自己的）
-        click menu item "v Phone" of menu 1 of button 2 of window 1
-    end tell
-end tell
-```
+左上角菜单栏里，对 设备->显示风格 设置为 矩形，可以让窗口和截图不再显示手机边框，再将 窗口 设置 像素精确，就会让截图和手机原生截图几乎相同。
 
 ### work/install_apk.lua
 

@@ -11,25 +11,22 @@ local function get_image_from_adb()
         local result = screenshot.shot_app(window)
         return hs.alert.show(result and "Android: 图片已复制" or "❌ 从安卓设备截图失败")
     end
-    local img_tmp = "/tmp/screenshot.png"
-    local output, status, t, rc = hs.execute("/usr/local/bin/adb exec-out screencap -p > " .. img_tmp)
+    local filename = string.format("%s/PIC_%s.png", screenshot.save_dir, os.date("%Y%m%d_%H%M%S"))
+    local _, status, _, _ = hs.execute("adb exec-out screencap -p > " .. filename, true)
     if status then
-        if hs.pasteboard.writeObjects(hs.image.imageFromPath(img_tmp)) then
+        if hs.pasteboard.writeObjects(hs.image.imageFromPath(filename)) then
             hs.alert.show("Android: 图片已复制")
-            os.remove(img_tmp)
             return
         end
     end
     hs.alert.show("❌ 从安卓设备截图失败")
-    os.remove(img_tmp)
 end
 
 hs.hotkey.bind({ "option" }, "c", get_image_from_adb)
 
 --- 对ios手机截图，复制到电脑剪贴板
---- 手机通过数据线连接电脑，电脑打开QuickTime Player，选择文件->新建影片录制
---- 录制按钮右边的小箭头点击下，屏幕选择手机，就可以将手机屏幕内容镜像到QuickTime Player上了
---- 通过对QuickTime Player窗口截图，速度较快，但质量较差
+--- 电脑需安装 Bezel 软件，连接iPhone进行镜像显示后，左上角菜单栏里，对 设备->显示风格 设置为 矩形，这样就不会显示手机边框了
+--- 按下快捷键后，会对Bezel的窗口进行截图，所以截图质量和窗口大小有关，为了最好的质量，建议Bezel设置窗口为像素精确。
 local function get_image_from_ios()
     local bezel = hs.application.get("Bezel")
     if bezel ~= nil and bezel:mainWindow() ~= nil then
