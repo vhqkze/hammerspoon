@@ -194,6 +194,13 @@ local menus = function()
             end,
         },
         {
+            title = "Compress Mobile Screenshot",
+            checked = hs.settings.get("compressMobileScreenshot") or false,
+            fn = function()
+                hs.settings.set("compressMobileScreenshot", not hs.settings.get("compressMobileScreenshot"))
+            end,
+        },
+        {
             title = "Auto Hide Dock",
             checked = getDockAutoHide(),
             fn = function()
