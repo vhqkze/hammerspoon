@@ -2,7 +2,7 @@
 
 local function install(filename)
     hs.task
-        .new("/usr/local/bin/adb", function(exitCode, stdOut, stdErr)
+        .new("$(which adb)", function(exitCode, stdOut, stdErr)
             if exitCode == 0 then
                 hs.notify.new({ title = "安装成功", informativeText = filename, withdrawAfter = 10 }):send()
             else
