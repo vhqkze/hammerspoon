@@ -1,6 +1,7 @@
 ---@diagnostic disable: lowercase-global
 hs.execute("networksetup -setwebproxystate Ethernet off")
 hs.execute("networksetup -setsecurewebproxystate Ethernet off")
+hs.execute("networksetup -setsocksfirewallproxystate Ethernet off")
 nc = hs.network.configuration.open()
 nc:monitorKeys("State:/Network/Global/Proxies")
 nc:setCallback(function(a)
@@ -13,6 +14,9 @@ nc:setCallback(function(a)
     end
     if proxy.HTTPSEnable == 1 then
         hs.execute("networksetup -setsecurewebproxystate Ethernet off")
+    end
+    if proxy.SOCKSEnable == 1 then
+        hs.execute("networksetup -setsocksfirewallproxystate Ethernet off")
     end
 end)
 nc:start()
