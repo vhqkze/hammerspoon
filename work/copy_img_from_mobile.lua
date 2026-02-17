@@ -12,9 +12,11 @@ local function get_image_from_adb()
         return hs.alert.show(result and "Android: 图片已复制" or "❌ 从安卓设备截图失败")
     end
     local filename = string.format("%s/PIC_%s.png", screenshot.save_dir, os.date("%Y%m%d_%H%M%S"))
-    local _, status, _, _ = hs.execute("adb exec-out screencap -p > " .. filename, true)
+    local _, status, _, _ = hs.execute("adb exec-out 'screencap -p 2>/dev/null' > " .. filename, true)
     if status then
-        if hs.pasteboard.writeObjects(hs.image.imageFromPath(filename)) then
+        local im = hs.image.imageFromPath(filename)
+        im = screenshot.add_timestamp(im, tostring(os.date("%Y-%m-%d %H:%M:%S")))
+        if hs.pasteboard.writeObjects(im) then
             hs.alert.show("Android: 图片已复制")
             return
         end
